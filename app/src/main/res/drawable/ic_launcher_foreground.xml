@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Window top bar with 3 dots -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M33,36 a2.5,2.5 0 1,0 0.01,0" />
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M40,36 a2.5,2.5 0 1,0 0.01,0" />
+    <path
+        android:fillColor="#4ADE80"
+        android:pathData="M47,36 a2.5,2.5 0 1,0 0.01,0" />
+    <!-- Terminal Prompt Chevron > -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M32,46 L46,54 L32,62 L32,58.5 L41.5,54 L32,49.5 Z" />
+    <!-- Terminal Underscore / Cursor _ -->
+    <path
+        android:fillColor="#22C55E"
+        android:pathData="M50,59 h18 v4 h-18 Z" />
+</vector>
+
