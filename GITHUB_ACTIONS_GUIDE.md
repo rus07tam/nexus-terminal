@@ -67,3 +67,31 @@ chmod +x gradlew
 - `RELEASE_KEY_PASSWORD`: пароль ключа
 
 Если эти секреты не заданы, пайплайн автоматически использует debug ключ для подписи.
+
+---
+
+## 4. Решение ошибки `chmod: cannot access 'gradlew': No such file or directory`
+
+Если при запуске GitHub Actions возникла эта ошибка, это означает, что файл `gradlew` не попал в репозиторий Git (не был добавлен в коммит).
+
+### Как зафиксировать файлы Wrapper в Git:
+
+Выполните в корне локального репозитория:
+
+```bash
+# Принудительно добавить файлы Gradle Wrapper в Git
+git add -f gradlew gradlew.bat gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.properties
+
+# Установить права на исполнение для Git
+git update-index --chmod=+x gradlew
+
+# Закоммитить и отправить в GitHub
+git commit -m "chore: add gradlew and gradle wrapper"
+git push
+```
+
+### Автоматическая защита в CI:
+В `.github/workflows/android.yml` теперь встроена автоматическая проверка:
+1. Если `gradlew` находится во вложенной папке — пайплайн найдет и скопирует его в корень.
+2. Если `gradlew` вовсе отсутствует в репозитории — пайплайн автоматически сгенерирует Wrapper на раннере GitHub Actions, не прерывая сборку.
+

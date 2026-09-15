@@ -38,8 +38,37 @@ jobs:
         with:
           cache-read-only: false
 
-      - name: Grant Execute Permission to gradlew
-        run: chmod +x gradlew
+      - name: Ensure Gradle Wrapper & Permissions
+        run: |
+          echo "=== Verifying Gradle Wrapper ==="
+          if [ -f "gradlew" ]; then
+            echo "gradlew found in root directory."
+            chmod +x gradlew
+          else
+            echo "::warning:: gradlew not found in root directory! Searching repository..."
+            SUB_GRADLEW=$(find . -maxdepth 4 -name "gradlew" -not -path "*/.*" | head -n 1)
+            if [ -n "$SUB_GRADLEW" ]; then
+              echo "Found gradlew in $(dirname "$SUB_GRADLEW"). Linking/copying to root..."
+              SUB_DIR=$(dirname "$SUB_GRADLEW")
+              cp -u "$SUB_DIR/gradlew" . || true
+              [ -f "$SUB_DIR/gradlew.bat" ] && cp -u "$SUB_DIR/gradlew.bat" . || true
+              if [ -d "$SUB_DIR/gradle/wrapper" ]; then
+                mkdir -p gradle/wrapper
+                cp -u "$SUB_DIR/gradle/wrapper/"* gradle/wrapper/ || true
+              fi
+              chmod +x gradlew
+            else
+              echo "::warning:: gradlew is completely missing from git checkout! Generating Gradle Wrapper..."
+              if ! command -v gradle &> /dev/null; then
+                echo "Installing gradle on runner..."
+                sudo apt-get update -qq && sudo apt-get install -y -qq gradle
+              fi
+              gradle wrapper --gradle-version 9.3.1 || gradle wrapper
+              chmod +x gradlew
+            fi
+          fi
+          echo "Gradle wrapper status:"
+          ls -la gradlew gradle/wrapper/ 2>/dev/null || true
 
       - name: Prepare Secrets Configuration (.env)
         run: |
