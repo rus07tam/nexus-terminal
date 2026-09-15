@@ -53,10 +53,17 @@ private val TerminalLightColorScheme = lightColorScheme(
 @Composable
 fun MyApplicationTheme(
     darkTheme: Boolean = true, // Default to sleek terminal dark mode
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) TerminalDarkColorScheme else TerminalLightColorScheme
+    val context = LocalContext.current
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> TerminalDarkColorScheme
+        else -> TerminalLightColorScheme
+    }
 
     MaterialTheme(
         colorScheme = colorScheme,

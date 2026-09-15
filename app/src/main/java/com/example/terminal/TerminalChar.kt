@@ -51,5 +51,6 @@ data class TerminalGraphic(
     val widthCells: Int = 1,
     val heightCells: Int = 1,
     val zIndex: Int = 0,
-    val protocol: String // "kitty" | "sixel" | "iterm2"
+    val protocol: String, // "kitty" | "sixel" | "iterm2"
+    val absoluteRowIndex: Int = 0
 )

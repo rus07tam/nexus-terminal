@@ -313,7 +313,13 @@ class TerminalBuffer(
     }
 
     fun addGraphic(graphic: TerminalGraphic) {
-        graphics.add(graphic)
+        val absIndex = history.size + cursorRow
+        val positionedGraphic = graphic.copy(absoluteRowIndex = absIndex)
+        graphics.add(positionedGraphic)
+        for (i in 0 until graphic.heightCells.coerceIn(1, 10)) {
+            lineFeed()
+        }
+        cursorCol = 0
         touch()
     }
 

@@ -19,7 +19,10 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -43,12 +46,7 @@ import com.example.ui.ConnectionsScreen
 import com.example.ui.SessionsScreen
 import com.example.ui.SettingsScreen
 import com.example.ui.TerminalScreen
-import com.example.ui.theme.CyanNeon
-import com.example.ui.theme.EmeraldNeon
 import com.example.ui.theme.MyApplicationTheme
-import com.example.ui.theme.Slate800
-import com.example.ui.theme.Slate900
-import com.example.ui.theme.Slate950
 import com.example.viewmodel.AppTab
 import com.example.viewmodel.TerminalViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -67,10 +65,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TerminalApp(viewModel: TerminalViewModel) {
     val currentTab by viewModel.currentTab.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val isImeVisible = WindowInsets.isImeVisible
 
     LaunchedEffect(Unit) {
         viewModel.snackbarMessages.collectLatest { message ->
@@ -78,19 +78,22 @@ fun TerminalApp(viewModel: TerminalViewModel) {
         }
     }
 
+    val showBottomBar = !(currentTab == AppTab.TERMINAL && isImeVisible)
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(Slate950)
             .statusBarsPadding(),
-        containerColor = Slate950,
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            TerminalBottomNavigation(
-                currentTab = currentTab,
-                onTabSelected = { viewModel.selectTab(it) }
-            )
+            if (showBottomBar) {
+                TerminalBottomNavigation(
+                    currentTab = currentTab,
+                    onTabSelected = { viewModel.selectTab(it) }
+                )
+            }
         }
     ) { innerPadding ->
         Box(
@@ -118,9 +121,9 @@ fun TerminalBottomNavigation(
         modifier = modifier
             .navigationBarsPadding()
             .testTag("bottom_nav_bar"),
-        containerColor = Slate900,
-        contentColor = CyanNeon,
-        tonalElevation = 8.dp
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = MaterialTheme.colorScheme.primary,
+        tonalElevation = 3.dp
     ) {
         AppTab.values().forEach { tab ->
             val isSelected = (tab == currentTab)
@@ -144,16 +147,15 @@ fun TerminalBottomNavigation(
                     Text(
                         text = tab.title,
                         fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        fontFamily = FontFamily.Monospace
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Slate950,
-                    selectedTextColor = CyanNeon,
-                    indicatorColor = CyanNeon,
-                    unselectedIconColor = Color.Gray,
-                    unselectedTextColor = Color.Gray
+                    selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 modifier = Modifier.testTag("nav_tab_${tab.name.lowercase()}")
             )

@@ -32,8 +32,12 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -102,7 +106,7 @@ fun TerminalScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Slate950)
+            .background(MaterialTheme.colorScheme.background)
             .imePadding()
     ) {
         // TOP BAR: Session Tabs & Lock/AutoScroll buttons
@@ -126,8 +130,7 @@ fun TerminalScreen(
             onToggleAutoScroll = { viewModel.toggleAutoScroll() },
             onClearScreen = { viewModel.clearScreen() },
             onCopyOutput = { viewModel.copyTerminalOutput() },
-            onToggleSoftKeyboard = { viewModel.toggleSoftKeyboard() },
-            onRunDemo = { activeSession?.runProtocolDemo() }
+            onToggleSoftKeyboard = { viewModel.toggleSoftKeyboard() }
         )
 
         // MAIN TERMINAL VIEW
@@ -215,22 +218,24 @@ fun TerminalTopBar(
     onToggleAutoScroll: () -> Unit,
     onClearScreen: () -> Unit,
     onCopyOutput: () -> Unit,
-    onToggleSoftKeyboard: () -> Unit,
-    onRunDemo: () -> Unit
+    onToggleSoftKeyboard: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = Slate900,
-        tonalElevation = 4.dp
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 2.dp
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 2.dp)
+        ) {
             // Row 1: Session Tabs
             val tabsScrollState = rememberScrollState()
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(tabsScrollState)
-                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                    .horizontalScroll(tabsScrollState),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -239,65 +244,62 @@ fun TerminalTopBar(
                     val profileColor = try {
                         Color(android.graphics.Color.parseColor(session.profile.colorHex))
                     } catch (e: Exception) {
-                        EmeraldNeon
+                        MaterialTheme.colorScheme.primary
                     }
 
-                    Row(
-                        modifier = Modifier
-                            .height(34.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (isSelected) Slate800 else Slate900)
-                            .border(1.dp, if (isSelected) CyanNeon else Slate700, RoundedCornerShape(6.dp))
-                            .clickable { onSessionSelect(session.id) }
-                            .padding(horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(profileColor)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = session.buffer.windowTitle.takeIf { it.isNotBlank() && it != "Terminal" }
-                                ?: "${session.profile.name} (${session.pid})",
-                            color = if (isSelected) Color.White else Color.LightGray,
-                            fontSize = 12.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            fontFamily = FontFamily.Monospace,
-                            maxLines = 1
-                        )
-                        if (sessions.size > 1) {
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close session",
-                                tint = Color.Gray,
-                                modifier = Modifier
-                                    .size(14.dp)
-                                    .clickable { onSessionClose(session.id) }
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onSessionSelect(session.id) },
+                        label = {
+                            Text(
+                                text = session.buffer.windowTitle.takeIf { it.isNotBlank() && it != "Terminal" }
+                                    ?: "${session.profile.name} (${session.pid})",
+                                fontSize = 11.sp,
+                                fontFamily = FontFamily.Monospace,
+                                maxLines = 1
                             )
-                        }
-                    }
+                        },
+                        leadingIcon = {
+                            Box(
+                                modifier = Modifier
+                                    .size(7.dp)
+                                    .clip(CircleShape)
+                                    .background(profileColor)
+                            )
+                        },
+                        trailingIcon = if (sessions.size > 1) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close session",
+                                    modifier = Modifier
+                                        .size(13.dp)
+                                        .clickable { onSessionClose(session.id) }
+                                )
+                            }
+                        } else null,
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        modifier = Modifier.height(28.dp)
+                    )
                 }
 
                 // New Session '+' Button
-                Box(
+                IconButton(
+                    onClick = onNewSession,
                     modifier = Modifier
-                        .size(34.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Slate800)
-                        .border(1.dp, Slate700, RoundedCornerShape(6.dp))
-                        .clickable(onClick = onNewSession)
-                        .testTag("btn_new_session"),
-                    contentAlignment = Alignment.Center
+                        .size(28.dp)
+                        .testTag("btn_new_session")
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "New session",
-                        tint = CyanNeon,
-                        modifier = Modifier.size(18.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
@@ -306,139 +308,114 @@ fun TerminalTopBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                    .padding(top = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Top-left controls: Lock & AutoScroll buttons
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Lock button: stops rendering updates
-                    Box(
-                        modifier = Modifier
-                            .height(30.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (isLocked) AmberNeon else Slate800)
-                            .border(1.dp, if (isLocked) AmberNeon else Slate700, RoundedCornerShape(6.dp))
-                            .clickable(onClick = onToggleLock)
-                            .padding(horizontal = 8.dp)
-                            .testTag("btn_lock_terminal"),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
-                                contentDescription = "Toggle Lock",
-                                tint = if (isLocked) Slate950 else Color.White,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = if (isLocked) "LOCKED" else "LOCK",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isLocked) Slate950 else Color.White,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        }
-                    }
-
-                    // Auto-scroll button: toggle snapping to bottom
-                    Box(
-                        modifier = Modifier
-                            .height(30.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (autoScroll) CyanNeon else Slate800)
-                            .border(1.dp, if (autoScroll) CyanNeon else Slate700, RoundedCornerShape(6.dp))
-                            .clickable(onClick = onToggleAutoScroll)
-                            .padding(horizontal = 8.dp)
-                            .testTag("btn_auto_scroll"),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowDownward,
-                                contentDescription = "Auto Scroll",
-                                tint = if (autoScroll) Slate950 else Color.White,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = if (autoScroll) "AUTO-SCROLL ON" else "SCROLL PAUSED",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (autoScroll) Slate950 else Color.White,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        }
-                    }
-                }
-
-                // Action buttons on the right: Demo, Copy, Clear, Soft Keyboard
+                // Top-left controls: Lock & AutoScroll chips
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Protocol demo button
-                    Box(
+                    FilterChip(
+                        selected = isLocked,
+                        onClick = onToggleLock,
+                        label = {
+                            Text(
+                                text = if (isLocked) "LOCKED" else "LOCK",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
+                                contentDescription = "Toggle Lock",
+                                modifier = Modifier.size(12.dp)
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                            selectedLeadingIconColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        ),
                         modifier = Modifier
-                            .height(30.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Slate800)
-                            .border(1.dp, EmeraldNeon, RoundedCornerShape(6.dp))
-                            .clickable(onClick = onRunDemo)
-                            .padding(horizontal = 6.dp)
-                            .testTag("btn_demo"),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "DEMO",
-                            color = EmeraldNeon,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace
-                        )
-                    }
+                            .height(26.dp)
+                            .testTag("btn_lock_terminal")
+                    )
 
+                    FilterChip(
+                        selected = autoScroll,
+                        onClick = onToggleAutoScroll,
+                        label = {
+                            Text(
+                                text = if (autoScroll) "AUTO" else "PAUSED",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDownward,
+                                contentDescription = "Auto Scroll",
+                                modifier = Modifier.size(12.dp)
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        modifier = Modifier
+                            .height(26.dp)
+                            .testTag("btn_auto_scroll")
+                    )
+                }
+
+                // Action buttons on the right: Copy, Clear, Soft Keyboard
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(
                         onClick = onCopyOutput,
-                        modifier = Modifier.size(30.dp).testTag("btn_copy_output")
+                        modifier = Modifier
+                            .size(28.dp)
+                            .testTag("btn_copy_output")
                     ) {
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
                             contentDescription = "Copy all output",
-                            tint = Color.LightGray,
-                            modifier = Modifier.size(16.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(15.dp)
                         )
                     }
 
                     IconButton(
                         onClick = onClearScreen,
-                        modifier = Modifier.size(30.dp).testTag("btn_clear_screen")
+                        modifier = Modifier
+                            .size(28.dp)
+                            .testTag("btn_clear_screen")
                     ) {
                         Icon(
                             imageVector = Icons.Default.Clear,
                             contentDescription = "Clear screen",
-                            tint = Color.LightGray,
-                            modifier = Modifier.size(16.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(15.dp)
                         )
                     }
 
                     IconButton(
                         onClick = onToggleSoftKeyboard,
-                        modifier = Modifier.size(30.dp).testTag("btn_toggle_soft_keyboard")
+                        modifier = Modifier
+                            .size(28.dp)
+                            .testTag("btn_toggle_soft_keyboard")
                     ) {
                         Icon(
                             imageVector = Icons.Default.Keyboard,
                             contentDescription = "Soft keyboard",
-                            tint = CyanNeon,
-                            modifier = Modifier.size(18.dp)
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }

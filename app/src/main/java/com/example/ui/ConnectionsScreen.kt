@@ -35,6 +35,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -77,12 +78,12 @@ fun ConnectionsScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = Slate950,
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { isAddingNew = true },
-                containerColor = CyanNeon,
-                contentColor = Slate950,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.testTag("fab_add_connection")
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Connection")

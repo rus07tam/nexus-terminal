@@ -639,7 +639,19 @@ class TerminalParser(
             }
             9 -> { // OSC 9 desktop notification
                 if (settings.oscNotifications) {
-                    onNotification(arg)
+                    val msg = if (arg.contains(';')) {
+                        arg.substringAfter(';')
+                    } else {
+                        arg
+                    }
+                    onNotification(msg.trim())
+                }
+            }
+            777 -> { // OSC 777 notification: notify;title;message
+                if (settings.oscNotifications) {
+                    val parts = arg.split(';')
+                    val msg = if (parts.size >= 3) "${parts[1]}: ${parts[2]}" else arg
+                    onNotification(msg.trim())
                 }
             }
             10, 11, 12 -> { // FG / BG / Cursor color query
@@ -712,21 +724,23 @@ class TerminalParser(
     }
 
     private fun handleDcs(content: String) {
-        // Sixel Graphics starts with ... q
-        if (settings.sixel && (content.startsWith("q") || content.contains(";q"))) {
+        // Sixel Graphics starts with ... q (e.g. "q", "0;0;8q", "70;1;0;q")
+        if (settings.sixel && !content.startsWith("+q") && content.contains('q')) {
             val qIdx = content.indexOf('q')
             if (qIdx != -1) {
                 val sixelPayload = content.substring(qIdx + 1)
                 val bitmap = SixelDecoder.decode(sixelPayload)
                 if (bitmap != null) {
+                    val wCells = (bitmap.width / 10).coerceIn(4, 50)
+                    val hCells = (bitmap.height / 20).coerceIn(2, 25)
                     buffer.addGraphic(
                         TerminalGraphic(
                             id = "sixel_${System.currentTimeMillis()}",
                             bitmap = bitmap,
                             row = buffer.cursorRow,
                             col = buffer.cursorCol,
-                            widthCells = (bitmap.width / 12).coerceIn(4, 40),
-                            heightCells = (bitmap.height / 24).coerceIn(2, 20),
+                            widthCells = wCells,
+                            heightCells = hCells,
                             protocol = "sixel"
                         )
                     )

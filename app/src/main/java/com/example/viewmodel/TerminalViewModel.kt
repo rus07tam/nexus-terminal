@@ -1,6 +1,8 @@
 package com.example.viewmodel
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -8,6 +10,8 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.TerminalRepository
@@ -97,6 +101,7 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
     val renderVersion: StateFlow<Long> = _renderVersion.asStateFlow()
 
     init {
+        createNotificationChannel()
         loadData()
     }
 
@@ -283,10 +288,59 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun showNotification(message: String) {
-        viewModelScope.launch {
-            _snackbarMessages.emit("OSC 9: $message")
+    private val NOTIFICATION_CHANNEL_ID = "terminal_osc_channel"
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Terminal Notifications",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifications received from terminal sessions (OSC 9 / OSC 777)"
+                enableVibration(true)
+            }
+            val manager = getApplication<Application>().getSystemService(NotificationManager::class.java)
+            manager?.createNotificationChannel(channel)
         }
+    }
+
+    private fun showNotification(message: String) {
+        val context = getApplication<Application>()
+        try {
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("Terminal Notification")
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .build()
+            manager?.notify((System.currentTimeMillis() % 10000).toInt(), notification)
+        } catch (e: Exception) {
+            Log.e("TerminalViewModel", "Failed to show system notification", e)
+        }
+
+        viewModelScope.launch {
+            _snackbarMessages.emit("🔔 $message")
+        }
+    }
+
+    fun launchDemoSession() {
+        val existing = _sessions.value.find { it.profile.id == "demo_showcase" }
+        if (existing != null) {
+            _activeSessionId.value = existing.id
+            _currentTab.value = AppTab.TERMINAL
+            triggerRenderUpdate()
+            return
+        }
+        val demoProfile = ConnectionProfile(
+            id = "demo_showcase",
+            name = "Protocols Showcase",
+            colorHex = "#A855F7",
+            transport = TransportType.LOCAL_SHELL
+        )
+        createSession(demoProfile)
     }
 
     private fun triggerVibrate() {
@@ -360,6 +414,28 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
             val row = currentRows[rowIndex]
             val updatedKeys = row.keys.filter { it.id != keyId }
             currentRows[rowIndex] = row.copy(keys = updatedKeys)
+            updateKeyboardLayout(KeyboardLayout(rows = currentRows))
+        }
+    }
+
+    fun moveKeyInRow(rowIndex: Int, fromIndex: Int, toIndex: Int) {
+        val currentRows = _keyboardLayout.value.rows.toMutableList()
+        if (rowIndex in currentRows.indices) {
+            val row = currentRows[rowIndex]
+            if (fromIndex in row.keys.indices && toIndex in row.keys.indices) {
+                val keys = row.keys.toMutableList()
+                val item = keys.removeAt(fromIndex)
+                keys.add(toIndex, item)
+                currentRows[rowIndex] = row.copy(keys = keys)
+                updateKeyboardLayout(KeyboardLayout(rows = currentRows))
+            }
+        }
+    }
+
+    fun clearRow(rowIndex: Int) {
+        val currentRows = _keyboardLayout.value.rows.toMutableList()
+        if (rowIndex in currentRows.indices) {
+            currentRows[rowIndex] = currentRows[rowIndex].copy(keys = emptyList())
             updateKeyboardLayout(KeyboardLayout(rows = currentRows))
         }
     }

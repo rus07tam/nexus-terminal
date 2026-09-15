@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -30,11 +29,6 @@ import androidx.compose.ui.unit.sp
 import com.example.model.KeyType
 import com.example.model.KeyboardLayout
 import com.example.model.ToolbarKey
-import com.example.ui.theme.EmeraldNeon
-import com.example.ui.theme.Slate700
-import com.example.ui.theme.Slate800
-import com.example.ui.theme.Slate900
-import com.example.ui.theme.Slate950
 
 @Composable
 fun KeyboardToolbar(
@@ -48,14 +42,14 @@ fun KeyboardToolbar(
         modifier = modifier
             .fillMaxWidth()
             .testTag("keyboard_toolbar"),
-        color = Slate950,
-        tonalElevation = 6.dp
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 2.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .padding(horizontal = 2.dp, vertical = 2.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             layout.rows.forEachIndexed { rowIndex, row ->
                 val scrollState = rememberScrollState()
@@ -63,8 +57,8 @@ fun KeyboardToolbar(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(scrollState)
-                        .padding(horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        .padding(horizontal = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
                     row.keys.forEach { key ->
                         val isSwitchActive = when {
@@ -92,37 +86,38 @@ fun KeyboardKeyButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isSwitch = key.type == KeyType.SWITCH
     val bg = when {
-        key.type == KeyType.SWITCH && isSwitchActive -> EmeraldNeon
-        key.type == KeyType.SWITCH -> Slate800
-        else -> Slate900
+        isSwitch && isSwitchActive -> MaterialTheme.colorScheme.primary
+        isSwitch -> MaterialTheme.colorScheme.surfaceContainerHighest
+        else -> MaterialTheme.colorScheme.surfaceContainerHigh
     }
     val contentColor = when {
-        key.type == KeyType.SWITCH && isSwitchActive -> Slate950
-        key.type == KeyType.SWITCH -> MaterialTheme.colorScheme.primary
-        else -> Color(0xFFF1F5F9)
+        isSwitch && isSwitchActive -> MaterialTheme.colorScheme.onPrimary
+        isSwitch -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.onSurface
     }
     val borderCol = when {
-        key.type == KeyType.SWITCH && isSwitchActive -> EmeraldNeon
-        else -> Slate700
+        isSwitch && isSwitchActive -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.outlineVariant
     }
 
     Box(
         modifier = modifier
-            .height(38.dp)
-            .widthIn(min = 40.dp)
+            .height(32.dp)
+            .widthIn(min = 36.dp)
             .clip(RoundedCornerShape(6.dp))
             .background(bg)
-            .border(1.dp, borderCol, RoundedCornerShape(6.dp))
+            .border(0.75.dp, borderCol, RoundedCornerShape(6.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 6.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = key.displayLabel,
             color = contentColor,
-            fontSize = 12.sp,
-            fontWeight = if (key.type == KeyType.SWITCH) FontWeight.Bold else FontWeight.Medium,
+            fontSize = 11.sp,
+            fontWeight = if (isSwitch || key.displayLabel.length <= 3) FontWeight.Bold else FontWeight.Medium,
             fontFamily = FontFamily.Monospace,
             maxLines = 1
         )

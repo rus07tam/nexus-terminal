@@ -30,6 +30,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,7 +68,7 @@ fun SessionsScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = Slate950,
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -79,8 +80,8 @@ fun SessionsScreen(
                     )
                     viewModel.createSession(profile)
                 },
-                containerColor = EmeraldNeon,
-                contentColor = Slate950,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.testTag("fab_new_session")
             ) {
                 Icon(Icons.Default.Add, contentDescription = "New Session")
