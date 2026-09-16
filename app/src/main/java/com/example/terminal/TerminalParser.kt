@@ -436,7 +436,7 @@ class TerminalParser(
                 if (isGt && cleanParam == "0") {
                     // XTVERSION (CSI > 0 q)
                     if (settings.xtVersion) {
-                        onPtyWrite("\u001bP>|Terminal(1.0)\u001b\\")
+                        onPtyWrite("\u001bP>|Tretty(1.0)\u001b\\")
                     }
                 } else if (intermediateChar == ' ' && settings.decscusr) {
                     // DECSCUSR (CSI Ps SP q) cursor style

@@ -153,7 +153,7 @@ class LocalShellSession(
     private fun buildWelcomeBanner(): String {
         return buildString {
             append("\u001b[1;36m┌──────────────────────────────────────────────┐\u001b[0m\r\n")
-            append("\u001b[1;36m│\u001b[0m \u001b[1;32m●\u001b[0m \u001b[1;37mAndroid Terminal Emulator\u001b[0m (PID: $pid)        \u001b[1;36m│\u001b[0m\r\n")
+            append("\u001b[1;36m│\u001b[0m \u001b[1;32m●\u001b[0m \u001b[1;37mTretty Terminal Emulator\u001b[0m (PID: $pid)        \u001b[1;36m│\u001b[0m\r\n")
             append("\u001b[1;36m│\u001b[0m \u001b[90mTransport:\u001b[0m \u001b[33m${profile.transport.displayName}\u001b[0m              \u001b[1;36m│\u001b[0m\r\n")
             append("\u001b[1;36m└──────────────────────────────────────────────┘\u001b[0m\r\n\r\n")
         }
@@ -375,7 +375,7 @@ class LocalShellSession(
     fun runProtocolDemo() {
         val demoText = buildString {
             append("\r\n\u001b[1;35m══════════════════════════════════════════════════════════════════\u001b[0m\r\n")
-            append("\u001b[1;36m       ⭐ TERMINAL PROTOCOLS & STANDARDS SHOWCASE SESSION ⭐      \u001b[0m\r\n")
+            append("\u001b[1;36m         ⭐ TRETTY PROTOCOLS & STANDARDS SHOWCASE ⭐              \u001b[0m\r\n")
             append("\u001b[1;35m══════════════════════════════════════════════════════════════════\u001b[0m\r\n\r\n")
 
             // [1] TrueColor
@@ -411,13 +411,13 @@ class LocalShellSession(
 
             // [5] Notifications (OSC 9 / OSC 777)
             append("\u001b[1;33m[5] OSC 9 Android System Notification:\u001b[0m\r\n")
-            append("\u001b]9;Terminal Showcase: OSC 9 Notification received successfully!\u001b\\")
+            append("\u001b]9;Tretty Showcase: OSC 9 Notification received successfully!\u001b\\")
             append("  \u001b[32m✔ Triggered OSC 9 system notification and in-app banner\u001b[0m\r\n\r\n")
 
             // [6] Clipboard (OSC 52)
             append("\u001b[1;33m[6] OSC 52 System Clipboard Synchronization:\u001b[0m\r\n")
-            append("\u001b]52;c;SGVsbG8gZnJvbSBBbmRyb2lkIFRlcm1pbmFsIE9TQyA1MiE=\u001b\\")
-            append("  \u001b[32m✔ Copied 'Hello from Android Terminal OSC 52!' to clipboard\u001b[0m\r\n\r\n")
+            append("\u001b]52;c;SGVsbG8gZnJvbSBUcmV0dHkgT1NDIDUyIQ==\u001b\\")
+            append("  \u001b[32m✔ Copied 'Hello from Tretty OSC 52!' to clipboard\u001b[0m\r\n\r\n")
 
             // [7] Sixel Graphics
             append("\u001b[1;33m[7] Sixel High-Resolution Graphics Protocol (DCS q):\u001b[0m\r\n")

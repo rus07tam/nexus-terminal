@@ -101,8 +101,16 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
     val renderVersion: StateFlow<Long> = _renderVersion.asStateFlow()
 
     init {
-        createNotificationChannel()
-        loadData()
+        try {
+            createNotificationChannel()
+        } catch (t: Throwable) {
+            Log.w("TerminalViewModel", "Failed to create notification channel", t)
+        }
+        try {
+            loadData()
+        } catch (t: Throwable) {
+            Log.e("TerminalViewModel", "Failed to load initial data", t)
+        }
     }
 
     private fun loadData() {
@@ -288,20 +296,26 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private val NOTIFICATION_CHANNEL_ID = "terminal_osc_channel"
+    private val NOTIFICATION_CHANNEL_ID = "tretty_osc_channel"
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                NOTIFICATION_CHANNEL_ID,
-                "Terminal Notifications",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notifications received from terminal sessions (OSC 9 / OSC 777)"
-                enableVibration(true)
+            try {
+                val context = getApplication<Application>()
+                val manager = context.getSystemService(NotificationManager::class.java)
+                if (manager != null) {
+                    val channel = NotificationChannel(
+                        NOTIFICATION_CHANNEL_ID,
+                        "Tretty Notifications",
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    ).apply {
+                        description = "Notifications received from terminal sessions (OSC 9 / OSC 777)"
+                    }
+                    manager.createNotificationChannel(channel)
+                }
+            } catch (t: Throwable) {
+                Log.w("TerminalViewModel", "Failed to create notification channel safely", t)
             }
-            val manager = getApplication<Application>().getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
         }
     }
 
@@ -311,14 +325,14 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("Terminal Notification")
+                .setContentTitle("Tretty Notification")
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .build()
             manager?.notify((System.currentTimeMillis() % 10000).toInt(), notification)
-        } catch (e: Exception) {
-            Log.e("TerminalViewModel", "Failed to show system notification", e)
+        } catch (e: Throwable) {
+            Log.w("TerminalViewModel", "Failed to show system notification", e)
         }
 
         viewModelScope.launch {

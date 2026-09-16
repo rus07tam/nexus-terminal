@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Terminal"
+rootProject.name = "Tretty"
 
 include(":app")
